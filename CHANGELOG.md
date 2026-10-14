@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/chenquincy/app-info-parser/compare/v1.1.6...v1.2.0) (2026-10-14)
+
+
+### Features
+
+* **certificate:** extract X.509 certificate chain from APK signing certificates
+  * V1 (JAR signing): parse META-INF/CERT.RSA (PKCS#7) to extract certificate chain
+  * V2/V3 (APK Signing Block): parse APK Signing Block to extract certificates
+  * V4 (.idsig file): parse protobuf-encoded .idsig file to extract certificates
+* **signature verification:** verify APK signature integrity
+  * V1: RSA signature verification + MANIFEST.MF digest verification
+  * V2/V3/V4: certificate extraction as baseline verification
+  * Signature pass/fail result available in `signaturePass` field
+  * Certificate expiry does NOT affect signature verification result
+* **full DN display:** subject/issuer now display full Distinguished Name (e.g. `C=CN, ST=Shanghai, O=wizarPOS, CN=MyApp`)
+* **multi-scheme support:** certificates from ALL signature schemes are collected and tagged with `scheme` field (`v1`/`v2`/`v3`/`v4`)
+* **browser compatible:** replaced `readBigUInt64LE` with custom `readUInt64LE` for browser Buffer polyfill compatibility
+
+### New Dependencies
+
+* `node-forge` - for ASN.1 parsing, X.509 certificate operations, and RSA verification
+
+### New Files
+
+* `lib/cert-parser.js` - V1 certificate extraction and signature verification
+* `lib/apk-signing-block.js` - V2/V3 APK Signing Block parser
+* `lib/apk-idsig.js` - V4 .idsig protobuf parser
+
+### API Changes
+
+* `new AppInfoParser(file, options?)` - optional `options.idsigFile` for V4 signature
+* `parse()` result now includes:
+  * `certChain: CertInfo[]` - array of extracted certificates
+  * `signaturePass: boolean` - whether signature verification passed
+  * `signatureScheme: string` - detected schemes (e.g. `v2/v3/v1`)
+  * `certError?: string` - error message if certificate parsing failed
+
 ### [1.1.6](https://github.com/chenquincy/app-info-parser/compare/v1.1.2...v1.1.6) (2024-01-08)
 
 

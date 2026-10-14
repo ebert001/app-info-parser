@@ -9,7 +9,7 @@
   <style>
     html,body { padding: 0;margin: 0; font-size: 12px; background: #efefef; }
     p { padding: 0; margin: 0; }
-    .container { width: 450px; margin: 20px auto; }
+    .container { width: 520px; margin: 20px auto; }
     .title { border-left: 4px solid #78C3F3; padding-left: 12px; font-size: 16px; margin: 0 0 20px 0; }
     .card { padding: 20px; margin-bottom: 20px; background: #fff; border-radius: 4px; font-size: 12px; transition: all .3s; border: 1px solid #d9d9d9; border-color: #e9e9e9; }
     .card:hover { box-shadow: 0 1px 6px hsla(0,0%,39%,.2); border-color: #eee; }
@@ -17,6 +17,19 @@
     .file:hover { background: #AADFFD; border-color: #78C3F3; color: #004974; text-decoration: none; }
     #file-input { position: absolute; top: 0; left: 0; width: 85px; height: 30px; opacity: 0; }
     #file-input:hover { cursor: pointer; }
+    #idsig-input { position: absolute; top: 0; left: 0; width: 85px; height: 30px; opacity: 0; }
+    #idsig-input:hover { cursor: pointer; }
+    .row { padding: 8px 0; display: flex; overflow: hidden; border-bottom: 1px solid #f5f5f5; }
+    .row:last-child { border-bottom: none; }
+    .label { color: #000; text-align: right; width: 120px; font-weight: 600; padding-right: 16px; flex-shrink: 0; }
+    .value { flex: 1; overflow-wrap: break-word; word-wrap: break-word; color: #333; }
+    .section-title { font-size: 14px; font-weight: 600; color: #1E88C7; margin: 16px 0 8px 0; padding-bottom: 6px; border-bottom: 2px solid #78C3F3; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+    .badge-pass { background: #e6f7e6; color: #1a8a1a; }
+    .badge-fail { background: #fde8e8; color: #c53030; }
+    .cert-card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 3px; padding: 10px; margin: 6px 0; }
+    .perm-list { max-height: 150px; overflow-y: auto; background: #f9f9f9; border-radius: 3px; padding: 8px; margin-top: 4px; }
+    .perm-item { padding: 2px 0; color: #555; font-size: 11px; font-family: monospace; }
   </style>
 </head>
 
@@ -27,6 +40,10 @@
       <div class="file">Select File
         <input type="file" name="file" id="file-input" onchange="fileSelect()">
       </div>
+      <div class="file" style="margin-top:8px;" title="Optional: .idsig file for V4 signature">
+        Select .idsig
+        <input type="file" name="idsig" id="idsig-input" accept=".idsig">
+      </div>
     </div>
     <div id="result-list">
     </div>
@@ -35,34 +52,75 @@
   <script>
     function fileSelect() {
       const files = document.getElementById('file-input').files
+      if (!files || !files[0]) return
       try {
-        const parser = new AppInfoParser(files[0])
+        const idsigFiles = document.getElementById('idsig-input').files
+        const idsigFile = idsigFiles && idsigFiles[0] ? idsigFiles[0] : null
+        const options = idsigFile ? { idsigFile: idsigFile } : undefined
+        const parser = new AppInfoParser(files[0], options)
         parser.parse().then(result => {
+          // Build certificate chain HTML
+          let certHtml = ''
+          if (result.certChain && result.certChain.length) {
+            result.certChain.forEach((cert, i) => {
+              const schemeTag = cert.scheme ? '<span class="badge" style="background:#e8f0fe;color:#1a56db;font-size:10px;margin-left:6px;">' + cert.scheme.toUpperCase() + '</span>' : ''
+              certHtml += `
+                <div class="cert-card">
+                  <div class="row"><span class="label">Subject:</span><span class="value">${cert.subject || '(empty)'}${schemeTag}</span></div>
+                  <div class="row"><span class="label">Issuer:</span><span class="value">${cert.issuer || '(empty)'}</span></div>
+                  <div class="row"><span class="label">Serial:</span><span class="value">${cert.serialNumber || '(empty)'}</span></div>
+                  <div class="row"><span class="label">Valid From:</span><span class="value">${cert.notBefore || '?'}</span></div>
+                  <div class="row"><span class="label">Valid To:</span><span class="value">${cert.notAfter || '?'}</span></div>
+                  <div class="row"><span class="label">Self-Signed:</span><span class="value">${cert.isSelfSigned ? 'Yes' : 'No'}</span></div>
+                </div>`
+            })
+          } else {
+            certHtml = '<p style="color:#999;padding:8px 0;">No certificates found (APK may use V2/V3 signature scheme)</p>'
+          }
+
+          // Build permissions HTML
+          let permHtml = ''
+          if (result.usesPermissions && result.usesPermissions.length) {
+            permHtml = '<div class="perm-list">'
+            result.usesPermissions.forEach(p => {
+              permHtml += '<div class="perm-item">' + (p.name || p) + '</div>'
+            })
+            permHtml += '</div>'
+          } else {
+            permHtml = '<p style="color:#999;padding:8px 0;">No permissions declared</p>'
+          }
+
+          const sigBadge = result.signaturePass
+            ? '<span class="badge badge-pass">PASS</span>'
+            : '<span class="badge badge-fail">FAIL</span>'
+
           const div = document.createElement('div')
           div.innerHTML = `
-            <div style="padding: 20px; margin-bottom: 10px; background: #fff; border-radius: 4px; font-size: 16px; color: #717171; border: 1px solid #d9d9d9; border-color: #e9e9e9;">
-              <p style="padding: 10px 0; display: flex; overflow: hidden;">
-                <span style="color: #000; text-align: right; width: 100px; font-weight: 600; padding-right: 20px;">File Name: </span>
-                <span style="width: 0; flex: 1; overflow-wrap: break-word; word-wrap: break-word;">${ files[0].name }</span>
-              </p>
-              <p style="padding: 10px 0; display: flex; overflow: hidden;">
-                <span style="color: #000; text-align: right; width: 100px; font-weight: 600; padding-right: 20px;">App Icon: </span>
-                <img style="width: 80px; height: 80px;" src="${result.icon}" alt="">
-              </p>
-              <p style="padding: 10px 0; display: flex; overflow: hidden;">
-                <span style="color: #000; text-align: right; width: 100px; font-weight: 600; padding-right: 20px;">App Name: </span>
-                <span style="width: 0; flex: 1; overflow-wrap: break-word; word-wrap: break-word;">${ result['package'] || result['CFBundleName'] }</span>
-              </p>
-              <p style="padding: 10px 0; display: flex; overflow: hidden;">
-                <span style="color: #000; text-align: right; width: 100px; font-weight: 600; padding-right: 20px;">App Version: </span>
-                <span style="width: 0; flex: 1; overflow-wrap: break-word; word-wrap: break-word;">${ result['versionName'] || result['CFBundleShortVersionString'] }</span>
-              </p>
+            <div style="padding: 20px; margin-bottom: 10px; background: #fff; border-radius: 4px; font-size: 14px; color: #717171; border: 1px solid #d9d9d9;">
+              <p class="section-title">Basic Info</p>
+              <div class="row"><span class="label">File Name:</span><span class="value">${files[0].name}</span></div>
+              <div class="row"><span class="label">App Icon:</span><span class="value"><img style="width:64px;height:64px;border-radius:8px;" src="${result.icon || ''}" alt=""></span></div>
+              <div class="row"><span class="label">Package:</span><span class="value">${result['package'] || result['CFBundleName'] || '-'}</span></div>
+              <div class="row"><span class="label">Version:</span><span class="value">${result['versionName'] || result['CFBundleShortVersionString'] || '-'}</span></div>
+              <div class="row"><span class="label">Version Code:</span><span class="value">${result['versionCode'] || '-'}</span></div>
+              ${result.usesSdk ? '<div class="row"><span class="label">SDK Range:</span><span class="value">min=' + (result.usesSdk.minSdkVersion || '?') + ' target=' + (result.usesSdk.targetSdkVersion || '?') + '</span></div>' : ''}
+
+              <p class="section-title">Signature Verification</p>
+              <div class="row"><span class="label">Status:</span><span class="value">${sigBadge}</span></div>
+              <div class="row"><span class="label">Scheme:</span><span class="value">${result.signatureScheme || 'unknown'}</span></div>
+              ${result.certError ? '<div class="row"><span class="label">Error:</span><span class="value" style="color:#c53030;">' + result.certError + '</span></div>' : ''}
+
+              <p class="section-title">Certificate Chain (${result.certChain ? result.certChain.length : 0})</p>
+              ${certHtml}
+
+              <p class="section-title">Permissions (${result.usesPermissions ? result.usesPermissions.length : 0})</p>
+              ${permHtml}
             </div>
           `
-            document.getElementById('result-list').appendChild(div)
-          }).catch(e => {
-            window.alert('Parse Error: ' + e)
-          })
+          document.getElementById('result-list').appendChild(div)
+        }).catch(e => {
+          window.alert('Parse Error: ' + e)
+        })
       } catch (e) {
         window.alert('Parse Error: ' + e)
       }

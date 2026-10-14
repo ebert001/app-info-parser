@@ -101,48 +101,70 @@ parser.parse().then(result => {
 
 ### AppInfoParser | ApkParser | IpaParser
 
-* `constructor(file)`
+* `constructor(file, options?)`
   * `file`   Blob or File in browser, Path in Node
+  * `options` (optional, APK only)
+    * `idsigFile` - Path | Blob | File of `.idsig` file for V4 signature verification
 * `parse: () => Promise<Object>`   A function return a promise, which resolving the parse result
 
-## Buy Me A Coffee
+### Parse Result
 
-Open source is not easy, you can  buy me a coffee. *Note your name or github id so I can add you to the donation list.*
+| Field | Type | Description |
+| --- | --- | --- |
+| `package` | string | Package name (e.g. `com.example.app`) |
+| `versionName` | string | Human-readable version string |
+| `versionCode` | number | Numeric version code |
+| `icon` | string | Base64-encoded app icon |
+| `usesPermissions` | array | Declared permissions |
+| `usesSdk` | object | `minSdkVersion`, `targetSdkVersion` |
+| `certChain` | CertInfo[] | Extracted X.509 certificate chain |
+| `signaturePass` | boolean | Whether signature verification passed |
+| `signatureScheme` | string | Detected schemes (e.g. `v2/v3/v1`) |
+| `certError` | string | Error message if cert parsing failed |
 
-<table style="margin-left: auto; margin-right: auto;">
-	<tr>
-		<td style="padding: 50px;text-align:center;">
-      <p style="font-size:25px;">Wechat Pay</p>
-			<img src="https://user-images.githubusercontent.com/10976378/61703600-7e66f900-ad74-11e9-9eab-9ec57d1cf7e0.png">
-		</td>
-		<td style="padding: 50px;text-align:center;">
-      <p style="font-size:25px;">Ali Pay</p>
-			<img src="https://user-images.githubusercontent.com/10976378/61703625-9179c900-ad74-11e9-936c-9cf5b7d59aa7.png">
-		</td>
-	</tr>
-</table>
+### CertInfo
 
-## Donation List
+| Field | Type | Description |
+| --- | --- | --- |
+| `pem` | string | Certificate in PEM format |
+| `subject` | string | Full Distinguished Name (e.g. `C=CN, O=Org, CN=App`) |
+| `issuer` | string | Full Distinguished Name of issuer |
+| `notBefore` | string | Certificate validity start date (ISO 8601) |
+| `notAfter` | string | Certificate validity end date (ISO 8601) |
+| `serialNumber` | string | Certificate serial number |
+| `isSelfSigned` | boolean | Whether subject equals issuer |
+| `scheme` | string | Signature scheme: `v1`, `v2`, `v3`, or `v4` |
 
-❤️ Thanks these guys for donations. Contact me with <a href="mailto:mail@quincychen.cn" target="_blank" rel="noopener noreferrer nofollow" title="EMail">email</a>, if you had donated but not on the list.
+### Signature Verification
 
-| Donors                                 | Amount | Time             |
-| -------------------------------------- | ------ | ---------------- |
-| L*nker                                 | ￥10   | 2025-12-16 14:32 |
-| *明                                    | ￥100  | 2023-03-29 10:16 |
-| *明                                    | ￥100  | 2021-06-17 17:29 |
-| =*=                                    | ￥6.66 | 2021-05-24 15:12 |
-| *学                                    | ￥6.66 | 2021-01-08 15:32 |
-| y*n                                    | ￥6.66 | 2020-08-26 12:10 |
-| *明                                    | ￥100  | 2020-08-25 11:35 |
-| *肖                                    | ￥6.66 | 2020-07-31 19:54 |
-| O*s                                    | ￥1    | 2020-05-26 16:01 |
-| **豪                                   | ￥6.66 | 2020-03-05 20:14 |
-| *大                                    | ￥6.66 | 2020-02-25 16:55 |
-| *风                                    | ￥1    | 2020-01-03 15:36 |
-| [黄灰红](https://github.com/LoranWong) | ￥1    | 2019-12-10 17:53 |
-| zona.zhou                              | ￥1    | 2019-10-20 23:18 |
-| *。                                    | ￥66   | 2019-10-20 22:45 |
+The parser supports all four APK signature schemes:
+
+* **V1 (JAR signing):** Parses `META-INF/CERT.RSA` (PKCS#7), extracts certificate chain, verifies RSA signature and MANIFEST.MF digest.
+* **V2 (APK Signing Block):** Locates the APK Signing Block between ZIP entries and Central Directory, extracts certificates from the V2 signature (`id=0x7109871a`).
+* **V3 (APK Signing Block):** Same approach as V2 but for V3 signature (`id=0xf05368c0`), which supports key rotation.
+* **V4 (.idsig file):** Parses the separate `.idsig` file (protobuf format) to extract certificates. Requires passing the `.idsig` file via `options.idsigFile`.
+
+Certificates from ALL detected schemes are collected. Each certificate is tagged with its `scheme` field.
+
+> **Note:** `signaturePass` indicates whether the signature is cryptographically valid. Certificate expiry does NOT affect `signaturePass`.
+
+### V4 Signature Example
+
+``` javascript
+const AppInfoParser = require('app-info-parser')
+const parser = new AppInfoParser('app.apk', {
+  idsigFile: 'app.apk.idsig'  // required for V4
+})
+parser.parse().then(result => {
+  console.log('signature scheme:', result.signatureScheme) // e.g. "v4/v2/v3/v1"
+  console.log('signature pass:', result.signaturePass)
+  result.certChain.forEach(cert => {
+    console.log(`[${cert.scheme}] ${cert.subject}`)
+  })
+}).catch(err => {
+  console.log('err ----> ', err)
+})
+```
 
 ##  License
 
@@ -160,8 +182,3 @@ See this [issue](https://github.com/vitejs/vite/issues/2985) of vite, vite is no
 
 Just use app-info-parser by CDN using(import by script element), don't use it with module import in vite.
 
-## Some Declaration
-
-Due to the project's low input-output ratio and limited personal capacity, there will be no further maintenance of this project going forward.
-
-> 由于项目投入产出较低，且个人精力有限，后续不会再做功能维护
