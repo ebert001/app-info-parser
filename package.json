@@ -5,7 +5,12 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "test": "node ./example/node.js",
+    "test": "jest",
+    "test:unit": "jest test/utils.test.js test/index.test.js test/cert-parser.test.js test/apk-signing-block.test.js test/apk-idsig.test.js",
+    "test:integration": "jest test/integration.test.js",
+    "test:verbose": "jest --verbose",
+    "test:coverage": "jest --coverage",
+    "test:example": "node ./example/node.js",
     "build": "rimraf src/* && babel lib -d src",
     "build:browser": "rimraf dist/* && browserify lib/index.js -t [ babelify ] -s AppInfoParser -d | exorcist ./dist/app-info-parser.js.map | derequire > dist/app-info-parser.js",
     "minify": "uglifyjs ./dist/app-info-parser.js -o ./dist/app-info-parser.min.js -c -m --source-map \"url='./dist/app-info-parser.mini.js.map'\"",
@@ -62,6 +67,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "exorcist": "^1.0.1",
+    "jest": "^30.5.2",
     "rimraf": "^2.6.2",
     "typescript": "^5.9.3",
     "uglify-es": "^3.3.9"
@@ -76,5 +82,15 @@
   "homepage": "https://github.com/ebert001/app-info-parser#readme",
   "engines": {
     "node": ">=14.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/test/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "lib/**/*.js",
+      "!lib/index.d.ts"
+    ]
   }
 }

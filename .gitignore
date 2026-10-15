@@ -8,3 +8,9 @@ yarn-error.log
 test_packages/
 *.tgz
 test-cert.js
+
+# Test fixtures (binary files)
+test/fixtures/*.apk
+test/fixtures/*.ipa
+test/fixtures/*.idsig
+coverage/
