@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.2](https://github.com/ebert001/app-info-parser/compare/v1.2.1...v1.2.2) (2026-10-15)
+
+### Bug Fixes
+
+* **package.json:** fix `bin` format from string to object to eliminate npm publish warning
+* **package.json:** add missing `repository`, `bugs`, `homepage`, `engines` fields
+* **.npmignore:** remove misleading `lib/` entry (conflicts with `files` in package.json)
+* **README:** fix double space in License heading
+
+### Chores
+
+* Delete leftover files (`test-cert.js`, `*.tgz`)
+* Add `*.tgz` and `test-cert.js` to `.gitignore`
+* Delete unnecessary project-level `.npmrc`
+* Update LICENSE with dual copyright notice (original author + fork author)
+
 ## [1.2.1](https://github.com/ebert001/app-info-parser/compare/v1.2.0...v1.2.1) (2026-10-15)
 
 ### Bug Fixes

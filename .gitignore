@@ -6,3 +6,5 @@ yarn.lock
 yarn-error.log
 
 test_packages/
+*.tgz
+test-cert.js
