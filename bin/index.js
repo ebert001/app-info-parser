@@ -3,7 +3,7 @@
 const { program } = require('commander')
 const fs = require('fs')
 const path = require('path')
-const AppInfoParser = require('../src')
+const AppInfoParser = require('../lib')
 
 const info = require('../package.json')
 

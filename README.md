@@ -1,8 +1,14 @@
-## app-info-parser
+## apk-parser-js
 
-[app-info-parser](https://github.com/chenquincy/app-info-parser) is a parser for parsing `.ipa` or `.apk` files. It will return the information with json from `AndroidManifest.xml` or `Info.plist`.
+[apk-parser-js](https://github.com/ebert001/app-info-parser) is an enhanced fork of [app-info-parser](https://github.com/chenquincy/app-info-parser), a parser for parsing `.ipa` or `.apk` files. It returns the information in JSON from `AndroidManifest.xml` or `Info.plist`.
 
-![](https://img.shields.io/npm/v/app-info-parser.svg) ![](https://img.shields.io/npm/dt/app-info-parser.svg) ![](https://img.shields.io/badge/language-javascript-yellow.svg)
+**Enhanced features over the original:**
+
+* Full APK signature verification (V1 / V2 / V3 / V4)
+* X.509 certificate chain extraction from APK Signing Block
+* PKCS#7 certificate parsing with `node-forge`
+
+![](https://img.shields.io/npm/v/apk-parser-js.svg) ![](https://img.shields.io/npm/dt/apk-parser-js.svg) ![](https://img.shields.io/badge/language-javascript-yellow.svg)
 
 ## Support
 
@@ -15,19 +21,19 @@
 ## Installation
 
 ``` shell
-npm install app-info-parser
+npm install apk-parser-js
 # or yarn
-yarn add app-info-parser
+yarn add apk-parser-js
 ```
 
 ## Getting started
 
 ### NPX Use
 
-You can use app-info-parser by npx, if you don't want to install it. Run this command in your terminal:
+You can use apk-parser-js by npx, if you don't want to install it. Run this command in your terminal:
 
 ``` shell
-npx app-info-parser -f <file-path> -o <output-path>
+npx apk-parser-js -f <file-path> -o <output-path>
 ```
 
 | argument | type   | description                                                  |
@@ -38,7 +44,7 @@ npx app-info-parser -f <file-path> -o <output-path>
 ### NPM Use
 
 ``` javascript
-const AppInfoParser = require('app-info-parser')
+const AppInfoParser = require('apk-parser-js')
 const parser = new AppInfoParser('../packages/test.apk') // or xxx.ipa
 parser.parse().then(result => {
   console.log('app info ----> ', result)
@@ -52,7 +58,7 @@ parser.parse().then(result => {
 
 ``` html
 <input type="file" name="file" id="file" onchange="fileSelect()">
-<script src="//unpkg.com/browse/app-info-parser/dist/app-info-parser.min.js"></script>
+<script src="//unpkg.com/apk-parser-js/dist/app-info-parser.min.js"></script>
 <script>
 function fileSelect () {
   const files = document.getElementById('file').files
@@ -74,7 +80,7 @@ function fileSelect () {
 #### ApkParser
 
 ``` javascript
-const ApkParser = require('app-info-parser/src/apk')
+const ApkParser = require('apk-parser-js/src/apk')
 const parser = new ApkParser('../packages/test.apk')
 parser.parse().then(result => {
   console.log('app info ----> ', result)
@@ -87,7 +93,7 @@ parser.parse().then(result => {
 #### IpaParser
 
 ``` javascript
-const IpaParser = require('app-info-parser/src/ipa')
+const IpaParser = require('apk-parser-js/src/ipa')
 const parser = new IpaParser('../packages/test.ipa')
 parser.parse().then(result => {
   console.log('app info ----> ', result)
@@ -97,7 +103,7 @@ parser.parse().then(result => {
 })
 ```
 
-## API Referrer
+## API Reference
 
 ### AppInfoParser | ApkParser | IpaParser
 
@@ -105,7 +111,7 @@ parser.parse().then(result => {
   * `file`   Blob or File in browser, Path in Node
   * `options` (optional, APK only)
     * `idsigFile` - Path | Blob | File of `.idsig` file for V4 signature verification
-* `parse: () => Promise<Object>`   A function return a promise, which resolving the parse result
+* `parse: () => Promise<Object>`   A function returning a promise, which resolves to the parse result
 
 ### Parse Result
 
@@ -151,7 +157,7 @@ Certificates from ALL detected schemes are collected. Each certificate is tagged
 ### V4 Signature Example
 
 ``` javascript
-const AppInfoParser = require('app-info-parser')
+const AppInfoParser = require('apk-parser-js')
 const parser = new AppInfoParser('app.apk', {
   idsigFile: 'app.apk.idsig'  // required for V4
 })
@@ -166,19 +172,19 @@ parser.parse().then(result => {
 })
 ```
 
-##  License
+## License
 
 MIT
 
 ## Resources
 
-* [Changelog](https://github.com/chenquincy/app-info-parser/blob/master/CHANGELOG.md)
+* [Changelog](https://github.com/ebert001/app-info-parser/blob/master/CHANGELOG.md)
+* [Original project](https://github.com/chenquincy/app-info-parser)
 
 ## FAQ
 
-### Build/Parse error with vite？
+### Build/Parse error with vite?
 
-See this [issue](https://github.com/vitejs/vite/issues/2985) of vite, vite is not going support node global builtins and node specific api's on the client. Some of app-info-parser's deps didn't support browser env, most of them without maintain, so it can't be resolved.
+See this [issue](https://github.com/vitejs/vite/issues/2985) of vite, vite is not going support node global builtins and node specific api's on the client. Some of apk-parser-js's deps didn't support browser env, most of them without maintain, so it can't be resolved.
 
-Just use app-info-parser by CDN using(import by script element), don't use it with module import in vite.
-
+Just use apk-parser-js by CDN (import by script element), don't use it with module import in vite.

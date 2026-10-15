@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.1](https://github.com/ebert001/app-info-parser/compare/v1.2.0...v1.2.1) (2026-10-15)
+
+### Bug Fixes
+
+* **package.json:** remove redundant `typings` field (duplicate of `types`)
+* **package.json:** fix `@types/node` version from non-existent `^25.0.9` to `^22.0.0`
+* **bin:** fix CLI entry point `require('../src')` → `require('../lib')` (`src` is build output, `lib` is source)
+* **types:** fix `index.d.ts` syntax error — `parse()` method was outside `declare class` due to premature closing brace
+
+### Documentation
+
+* **README:** update all package references from `app-info-parser` to `apk-parser-js` (install commands, require paths, CDN links, npx usage)
+* **README:** add description as enhanced fork with signature/certificate features
+* **README:** update GitHub links to `ebert001/app-info-parser`, add link to original project
+
 ## [1.2.0](https://github.com/chenquincy/app-info-parser/compare/v1.1.6...v1.2.0) (2026-10-14)
 
 

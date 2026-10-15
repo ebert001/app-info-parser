@@ -18,7 +18,7 @@ declare class AppInfoParser {
      * @param options - Optional parameters (e.g. idsigFile for V4 signature)
      */
     constructor(filePath: string, options?: AppInfoParser.ParserOptions);
-}
+
     /**
      * Parse the APK/IPA file and extract app information
      * @returns Parsed app information containing package details
