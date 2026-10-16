@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.3](https://github.com/ebert001/app-info-parser/compare/v1.2.2...v1.2.3) (2026-10-16)
+
+### Chores
+
+* **apk.js:** remove debug console.log/error/warn statements from V2/V3 APK Signing Block parsing
+
 ## [1.2.2](https://github.com/ebert001/app-info-parser/compare/v1.2.1...v1.2.2) (2026-10-15)
 
 ### Bug Fixes
