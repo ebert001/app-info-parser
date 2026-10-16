@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/ebert001/app-info-parser/compare/v1.2.3...v1.3.0) (2026-10-16)
+
+### Features
+
+* **subpath exports:** add APK-only and IPA-only entry points for selective bundling
+  * `require('apk-parser-js/apk')` — APK parser only (809K minified, 27% smaller)
+  * `require('apk-parser-js/ipa')` — IPA parser only (402K minified, 63% smaller)
+  * `require('apk-parser-js')` — full parser (APK + IPA, 1.1M minified)
+  * Browser builds: `app-info-parser.apk.min.js`, `app-info-parser.ipa.min.js`
+  * `package.json` `exports` field for proper subpath resolution
+* **tests:** add unit tests for `index.apk.js` and `index.ipa.js` entry points (19 new test cases)
+
+### New Files
+
+* `lib/index.apk.js` — APK-only entry point
+* `lib/index.ipa.js` — IPA-only entry point
+* `test/index.apk.test.js` — tests for APK-only entry
+* `test/index.ipa.test.js` — tests for IPA-only entry
+
+### Benefits
+
+* Projects that only need APK parsing (e.g. Android TMS) can exclude IPA dependencies (`plist`, `bplist-parser`, `cgbi-to-png`) from the bundle entirely
+* Projects that only need IPA parsing can exclude APK dependencies (`bytebuffer`, `node-forge`)
+* No breaking changes — the default entry point still supports both APK and IPA
+
 ## [1.2.3](https://github.com/ebert001/app-info-parser/compare/v1.2.2...v1.2.3) (2026-10-16)
 
 ### Chores

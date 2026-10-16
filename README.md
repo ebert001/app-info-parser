@@ -73,35 +73,61 @@ function fileSelect () {
 </script>
 ```
 
-### Demand loading
+### Subpath Exports (Selective Bundling)
 
-> You can use demand loading, when you only need one parser.
+> If you only need APK parsing or IPA parsing, use subpath exports to reduce bundle size.
 
-#### ApkParser
+| Import | Size | Includes |
+| --- | --- | --- |
+| `apk-parser-js` | 1.1M | APK + IPA |
+| `apk-parser-js/apk` | 809K | APK only (no `plist`, `bplist-parser`, `cgbi-to-png`) |
+| `apk-parser-js/ipa` | 402K | IPA only (no `bytebuffer`, `node-forge`) |
+
+#### APK only (Node.js)
 
 ``` javascript
-const ApkParser = require('apk-parser-js/src/apk')
-const parser = new ApkParser('../packages/test.apk')
+const AppInfoParser = require('apk-parser-js/apk')
+const parser = new AppInfoParser('../packages/test.apk')
 parser.parse().then(result => {
   console.log('app info ----> ', result)
-  console.log('icon base64 ----> ', result.icon)
 }).catch(err => {
   console.log('err ----> ', err)
 })
 ```
 
-#### IpaParser
+#### IPA only (Node.js)
 
 ``` javascript
-const IpaParser = require('apk-parser-js/src/ipa')
-const parser = new IpaParser('../packages/test.ipa')
+const AppInfoParser = require('apk-parser-js/ipa')
+const parser = new AppInfoParser('../packages/test.ipa')
 parser.parse().then(result => {
   console.log('app info ----> ', result)
-  console.log('icon base64 ----> ', result.icon)
 }).catch(err => {
   console.log('err ----> ', err)
 })
 ```
+
+#### APK only (Browser / CDN)
+
+``` html
+<script src="//unpkg.com/apk-parser-js/dist/app-info-parser.apk.min.js"></script>
+<script>
+  const parser = new window.AppInfoParser(file) // only APK parsing supported
+  parser.parse().then(result => { console.log(result) })
+</script>
+```
+
+#### IPA only (Browser / CDN)
+
+``` html
+<script src="//unpkg.com/apk-parser-js/dist/app-info-parser.ipa.min.js"></script>
+<script>
+  const parser = new window.AppInfoParser(file) // only IPA parsing supported
+  parser.parse().then(result => { console.log(result) })
+</script>
+```
+
+> **Note:** The APK-only and IPA-only entry points validate the file type and throw an error if you pass the wrong file type.
 
 ## API Reference
 
@@ -185,6 +211,16 @@ MIT
 
 ### Build/Parse error with vite?
 
-See this [issue](https://github.com/vitejs/vite/issues/2985) of vite, vite is not going support node global builtins and node specific api's on the client. Some of apk-parser-js's deps didn't support browser env, most of them without maintain, so it can't be resolved.
+Use the APK-only subpath export to avoid IPA dependencies that require Node.js builtins:
 
-Just use apk-parser-js by CDN (import by script element), don't use it with module import in vite.
+``` javascript
+import AppInfoParser from 'apk-parser-js/apk'
+```
+
+This avoids pulling in `cgbi-to-png`, `bplist-parser`, `plist` and their transitive Node.js dependencies (`stream`, `zlib`, etc.).
+
+Alternatively, use the CDN build via `<script>` tag:
+
+``` html
+<script src="//unpkg.com/apk-parser-js/dist/app-info-parser.apk.min.js"></script>
+```
